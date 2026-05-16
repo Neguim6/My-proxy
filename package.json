@@ -1,0 +1,14 @@
+{
+  "name": "neolab-proxy",
+  "version": "1.0.0",
+  "description": "Reverse proxy for neolabdiagnostico.com.br",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "http-proxy-middleware": "^3.0.3"
+  }
+}
