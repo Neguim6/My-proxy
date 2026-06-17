@@ -4,7 +4,23 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const TARGET = 'https://neolabdiagnostico.com.br';
+const SISREG_TARGET = 'https://sisregiii.saude.gov.br/';
 
+// 1. Rota específica para o Sisreg
+app.use('/sisreg', createProxyMiddleware({
+  target: SISREG_TARGET,
+  changeOrigin: true,
+  secure: false,
+  on: {
+    proxyReq: (proxyReq, req, res) => {
+      proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      proxyReq.setHeader('Referer', SISREG_TARGET);
+      proxyReq.setHeader('Origin', SISREG_TARGET);
+    }
+  }
+}));
+
+// 2. Configuração do Proxy principal (Neolab)
 const proxy = createProxyMiddleware({
   target: TARGET,
   changeOrigin: true,
@@ -19,19 +35,17 @@ const proxy = createProxyMiddleware({
   },
 });
 
+// 3. Captura de todas as outras requisições para o Neolab com fallback de erro
 app.use((req, res) => {
   const fullUrl = TARGET + req.originalUrl;
   console.log(`[${new Date().toISOString()}] ${req.method} ${fullUrl}`);
   
-  // O segredo está aqui: capturar o erro e customizar a resposta
   proxy(req, res, (err) => {
     if (err) {
       console.error('Proxy error intercepted:', err.message);
       
-      // Define o status HTTP como 200 (Sucesso) ou 503 para o navegador não travar
       res.status(200);
       
-      // Envia uma página HTML customizada e amigável para o paciente
       res.send(`
         <!DOCTYPE html>
         <html lang="pt-BR">
@@ -55,7 +69,6 @@ app.use((req, res) => {
                 <p>O servidor principal de laudos está temporariamente inacessível ou passando por atualizações.</p>
                 <p>Para sua comodidade, você pode acessar seus resultados diretamente pelo portal alternativo:</p>
                 
-                <!-- Botão que direciona para a alternativa que funciona -->
                 <a href="https://ligaresultnet.com.br/resultnet/login.php?lab=neolab" class="btn">Acessar Área de Resultados</a>
                 
                 <div class="footer">Se o problema persistir, entre em contato com o suporte do laboratório.</div>
