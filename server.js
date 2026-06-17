@@ -4,21 +4,11 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const TARGET = 'https://neolabdiagnostico.com.br';
-const SISREG_TARGET = 'https://sisregiii.saude.gov.br/';
 
-// 1. Rota específica para o Sisreg
-app.use('/sisreg', createProxyMiddleware({
-  target: SISREG_TARGET,
-  changeOrigin: true,
-  secure: false,
-  on: {
-    proxyReq: (proxyReq, req, res) => {
-      proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-      proxyReq.setHeader('Referer', SISREG_TARGET);
-      proxyReq.setHeader('Origin', SISREG_TARGET);
-    }
-  }
-}));
+// 1. Redirecionamento direto para o Sisreg (evita bloqueios de segurança do governo)
+app.get('/sisreg', (req, res) => {
+  res.redirect('https://sisregiii.saude.gov.br/');
+});
 
 // 2. Configuração do Proxy principal (Neolab)
 const proxy = createProxyMiddleware({
