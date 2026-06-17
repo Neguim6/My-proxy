@@ -5,9 +5,26 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const TARGET = 'https://neolabdiagnostico.com.br';
 
-// 1. Redirecionamento direto para o Sisreg (evita bloqueios de segurança do governo)
+// 1. Redirecionamento via JavaScript (Evita que o Firewall do Sisreg bloqueie o IP do Render)
 app.get('/sisreg', (req, res) => {
-  res.redirect('https://sisregiii.saude.gov.br/');
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <title>Redirecionando...</title>
+        <script>
+            // Força o navegador a abrir o link do zero, limpando cabeçalhos do proxy
+            window.location.replace("https://sisregiii.saude.gov.br/");
+        </script>
+    </head>
+    <body>
+        <p style="font-family: sans-serif; text-align: center; margin-top: 50px; color: #666;">
+            Redirecionando para o sistema Sisreg...
+        </p>
+    </body>
+    </html>
+  `);
 });
 
 // 2. Configuração do Proxy principal (Neolab)
