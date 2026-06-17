@@ -5,22 +5,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const TARGET = 'https://neolabdiagnostico.com.br';
 
-// 1. Redirecionamento via JavaScript (Evita que o Firewall do Sisreg bloqueie o IP do Render)
+// 1. Redirecionamento Ultra-Seguro com "no-referrer" (Garante anonimato contra o WAF do Sisreg)
 app.get('/sisreg', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
+        <meta name="referrer" content="no-referrer">
         <title>Redirecionando...</title>
         <script>
-            // Força o navegador a abrir o link do zero, limpando cabeçalhos do proxy
-            window.location.replace("https://sisregiii.saude.gov.br/");
+            window.onload = function() {
+                // Cria um link invisível simulando o clique direto do usuário
+                var link = document.createElement('a');
+                link.href = "https://sisregiii.saude.gov.br/";
+                link.rel = "noreferrer noopener";
+                document.body.appendChild(link);
+                link.click();
+            };
         </script>
     </head>
     <body>
         <p style="font-family: sans-serif; text-align: center; margin-top: 50px; color: #666;">
-            Redirecionando para o sistema Sisreg...
+            Acessando o portal Sisreg de forma segura...
         </p>
     </body>
     </html>
