@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const TARGET = 'https://neolabdiagnostico.com.br';
 
-// 1. Redirecionamento Ultra-Seguro com "no-referrer" (Garante anonimato contra o WAF do Sisreg)
+// 1. Redirecionamento em Nova Aba com isolamento total (Evita bloqueios em acessos seguidos)
 app.get('/sisreg', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -16,19 +16,36 @@ app.get('/sisreg', (req, res) => {
         <title>Redirecionando...</title>
         <script>
             window.onload = function() {
-                // Cria um link invisível simulando o clique direto do usuário
+                try {
+                    // Limpa rastros locais antes do redirecionamento
+                    localStorage.clear();
+                    sessionStorage.clear();
+                } catch(e) {}
+
+                // Cria um link isolado
                 var link = document.createElement('a');
                 link.href = "https://sisregiii.saude.gov.br/";
                 link.rel = "noreferrer noopener";
+                
+                // Força a abertura em uma nova aba para quebrar o vínculo com o proxy
+                link.target = "_blank"; 
+                
                 document.body.appendChild(link);
                 link.click();
+                
+                // Mensagem de suporte caso o navegador bloqueie o pop-up automático
+                setTimeout(function() {
+                    document.getElementById('msg').innerHTML = 'Se a página não abriu automaticamente em uma nova aba, <a href="https://sisregiii.saude.gov.br/" rel="noreferrer noopener" target="_blank" style="color: #0275d8; font-weight: bold;">clique aqui para acessar diretamente</a>.';
+                }, 1500);
             };
         </script>
     </head>
-    <body>
-        <p style="font-family: sans-serif; text-align: center; margin-top: 50px; color: #666;">
-            Acessando o portal Sisreg de forma segura...
-        </p>
+    <body style="font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; color: #333;">
+        <div style="max-width: 500px; margin: 100px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;">
+            <p id="msg" style="font-size: 16px; color: #666; line-height: 1.6;">
+                Acessando o portal Sisreg de forma segura...
+            </p>
+        </div>
     </body>
     </html>
   `);
